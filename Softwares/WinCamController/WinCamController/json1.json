@@ -1,0 +1,14 @@
+﻿{
+  "Title": "CamTriggerApp",
+  "PortName": "COM15",
+  "PortSpeed": 57600,
+ // "MyIntegerProperty": 1,
+//  "MySubDocument": {
+ //   "SubDocumentProperty": "SubDocumentValue"
+  //},
+  "DropSize": [
+    10 ,
+    15,
+    20
+  ]
+}
