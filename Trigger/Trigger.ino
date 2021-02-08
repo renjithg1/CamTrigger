@@ -13,6 +13,8 @@
 #include "CameraController.h"
 #include "utilities.h"
 
+#include "FirmataLite.h"   
+
 #define TAP_PIN 4      // pin that controls the MOSFET
 #define SHUTTER 25     // Shutter Pin
 #define AUTO_FOCUS 26  // Autofocus Pin
@@ -20,55 +22,119 @@
 
 WaterTap tap(TAP_PIN);
 CameraController camera(SHUTTER, AUTO_FOCUS);
-
-
 bool bTap = false;
+
+volatile int interruptCounter;
+int totalInterruptCounter;
+ 
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+
+
+#define SerialDataBits 57600
+HardwareSerial SerialController( 2 );
+ 
+void IRAM_ATTR onTimer() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  interruptCounter++;
+  portEXIT_CRITICAL_ISR(&timerMux);
+
+}
 
 void setup()
 {
-  Serial.begin(115200); // turn on serial communication
-
-  tap.Init();           // 
+  //Serial.begin(115200);                 // turn on serial communication
+  tap.Init();                           // 
   camera.Init();
 
-  attachInterrupt(0, ShutterPress, FALLING);
+  //attachInterrupt(0, ShutterPress, FALLING);
   
   DbgMsg("IN SETUP");
 
-  //pinMode(TAP_PIN,  OUTPUT);         // define control pin as output
-  pinMode(SHUTTER,  OUTPUT);         // define control pin as output
-  pinMode(AUTO_FOCUS,  OUTPUT);         // define control pin as output
+  //pinMode(TAP_PIN,  OUTPUT);          // define control pin as output
+  //pinMode(SHUTTER,  OUTPUT);            // define control pin as output
+  //pinMode(AUTO_FOCUS,  OUTPUT);         // define control pin as output
+
+    // Init Firmata 
+  FirmataLite.attach(START_SYSEX, sysexCallback);
+  FirmataLite.begin(57600);
+
+
+  timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer, &onTimer, true);
+//  timerAlarmWrite(timer, 8000000, true);
+  //timerAlarmEnable(timer);  
+
+  SerialController.begin( SerialDataBits );
 }
+
+
+// On sysex message from host
+void sysexCallback(byte command, byte argc, byte*argv)
+{
+    SerialController.println("sysexCallback()");
+    tap.OpenTap(100);
+
+//    switch (command) 
+//  {
+//      case eVHIDReport:
+//          // The command is a HID report.
+//          ProcessVHIDReport(argc, argv);
+//          break;
+//
+//      case eResetESP:
+//          ESP.restart();
+//          break;
+//
+//      case eIsESPReady:
+//          // A IsESPReady query message is send by caller to overcome the boot (1,7) issue.
+//          // If the packet is received correctly, we will write "espReady" immediately to serial. 
+//          // The caller can listen (read) the serial and take actions based on the return value. 
+//          // This is a tricky workaround. 
+//          Serial.println("espReady");
+//          break;
+//  }
+}
+
+
+
+
+static int counter=0;
+int serIn = 0; // for incoming serial data
 
 void loop()
 {
+  
+//   tap.OpenTap(100);
+//   camera.FocusPress();
+//   camera.ShutterPress(100);
+//   camera.ShutterRelease();
+//   camera.FocusRelease();
 
-  DbgMsg("loop () ");
-  if(bTap)
+//  while (FirmataLite.available()) {
+//    //  DbgMsg("InSide FirmataLite While () ");
+//    SerialController.print(counter++);
+//    SerialController.println(" : InSide :");
+//    FirmataLite.processInput();
+//  }
+
+  /* processing incoming serial messags */
+  while (FirmataLite.available())
   {
-    bTap = false;
-   // tap.OpenTap(10);
+    FirmataLite.processInput();    
   }
 
-   //digitalWrite(TAP_PIN, HIGH);  // Turn ON the MOSFET switch
-  // delay(100);               // Drop Duration / Drop size
-   //digitalWrite(TAP_PIN, LOW);   // Turn OFF the MOSFET switch
-   tap.OpenTap(100);
-
-   camera.FocusPress();
-   camera.ShutterPress(100);
-   camera.ShutterRelease();
-   camera.FocusRelease();
-
-//   digitalWrite(SHUTTER, HIGH);  // Turn ON the MOSFET switch
-//   digitalWrite(AUTO_FOCUS, HIGH);  // Turn ON the MOSFET switch
-//   delay(100);               // Drop Duration / Drop size
-//   digitalWrite(SHUTTER, LOW);   // Turn OFF the MOSFET switch
-//   digitalWrite(AUTO_FOCUS, LOW);  // Turn ON the MOSFET switch
-
-
-
-   delay(10000);               // Drop Duration / Drop size
+  if (interruptCounter > 0) {
+ 
+    portENTER_CRITICAL(&timerMux);
+    interruptCounter--;
+    portEXIT_CRITICAL(&timerMux);
+ 
+    totalInterruptCounter++;
+ 
+    Serial.print("An interrupt as occurred. Total number: ");
+    Serial.println(totalInterruptCounter);
+   }
 }
 
 

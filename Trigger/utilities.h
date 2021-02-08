@@ -43,3 +43,5 @@ enum LogLevel
   FunctionalError = 32,     //   100000
   All = 63                  //   111111
 };
+
+void sysexCallback(byte command, byte argc, byte*argv);
