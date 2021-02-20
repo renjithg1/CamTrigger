@@ -1,0 +1,12 @@
+﻿{
+  "Title": "CamTriggerApp",
+  "PortName": "COM15",
+  "PortSpeed": 57600,
+
+  "FlashDelay": [5, 148, 10, 2500 ],
+  "Drop1Size":  [ 5, 25, 10, 2500 ],
+  "Drop2Delay": [5, 80, 10, 2500 ],
+  "Drop2Size": [ 5, 25, 10, 2500 ],
+  "Drop3Delay": [5, 80, 10, 2500 ],
+  "Drop3Size":  [ 5, 25, 10, 2500 ]
+}
