@@ -29,9 +29,6 @@ extern "C" {
 #include <stdlib.h>
 }
 
-
-extern HardwareSerial SerialController;
-
 //******************************************************************************
 //* Support Functions
 //******************************************************************************
@@ -119,19 +116,14 @@ void FirmataLiteClass::processInput(void)
 {
   int inputData = Serial.read(); // this is 'int' to handle -1 when no data
   int command;
-  SerialController.print("inputData:");
-  SerialController.print(inputData);
-  SerialController.println("");
     
   // TODO make sure it handles -1 properly
 
   if (parsingSysex) {
-    SerialController.println("parsingSysex is true:");
     if(inputData == END_SYSEX) {
       //stop sysex byte      
       parsingSysex = false;
       //fire off handler function
-       
       processSysexMessage();
     } else {
       //normal data byte - add to buffer
@@ -139,35 +131,23 @@ void FirmataLiteClass::processInput(void)
       sysexBytesRead++;
     }
   } else if( (waitForData > 0) && (inputData < 128) ) {  
-
-    SerialController.println("Data is coming:");
     waitForData--;
     storedInputData[waitForData] = inputData;
     if( (waitForData==0) && executeMultiByteCommand ) { // got the whole message
-    // jhoefs - ever get here?
+	  // jhoefs - ever get here?
       executeMultiByteCommand = 0;
-    } 
+    }	
   } else {
-    SerialController.println("remove channel from command:");
     // remove channel info from command byte if less than 0xF0
     if(inputData < 0xF0) {
       command = inputData & 0xF0;
       multiByteChannel = inputData & 0x0F;
-      SerialController.println("remove channel from command: IF loop");
-
     } else {
       command = inputData;
       // commands in the 0xF* range don't use channel data
-      SerialController.println("remove channel from command: ELSE loop");
     }
-
-    SerialController.print("Command:");
-    SerialController.print(command);
-    SerialController.println("");
-    
     switch (command) {
     case START_SYSEX:
-      SerialController.println("remove channel from command: START_SYSEX loop");
       parsingSysex = true;
       sysexBytesRead = 0;
       break;
@@ -209,14 +189,14 @@ void FirmataLiteClass::sendString(const char* string)
 void FirmataLiteClass::attach(byte command, systemResetCallbackFunction newFunction)
 {
   switch(command) {
-    case SYSTEM_RESET: currentSystemResetCallback = newFunction; break;
+  	case SYSTEM_RESET: currentSystemResetCallback = newFunction; break;
   }
 }
 
 void FirmataLiteClass::attach(byte command, stringCallbackFunction newFunction)
 {
   switch(command) {
-    case STRING_DATA: currentStringCallback = newFunction; break;
+  	case STRING_DATA: currentStringCallback = newFunction; break;
   }
 }
 
@@ -228,9 +208,9 @@ void FirmataLiteClass::attach(byte command, sysexCallbackFunction newFunction)
 void FirmataLiteClass::detach(byte command)
 {
   switch(command) {
-    case SYSTEM_RESET: currentSystemResetCallback = NULL; break;
-    case STRING_DATA: currentStringCallback = NULL; break;
-    case START_SYSEX: currentSysexCallback = NULL; break;
+  	case SYSTEM_RESET: currentSystemResetCallback = NULL; break;
+  	case STRING_DATA: currentStringCallback = NULL; break;
+  	case START_SYSEX: currentSysexCallback = NULL; break;
   }
 }
 
@@ -265,3 +245,5 @@ void FirmataLiteClass::systemReset(void)
 
 // make one instance for the user to use
 FirmataLiteClass FirmataLite;
+
+
