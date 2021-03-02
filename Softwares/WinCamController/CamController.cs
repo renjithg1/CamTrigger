@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*
+ * 
+ * 2/28 - drop 3 support
+ */
+
+
+
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -178,6 +186,13 @@ namespace WinCamController
                 numericUpDownDrop2Size.Enabled = true;
                 trackBarDrop2Delay.Enabled = true;
                 trackBarDrop2Size.Enabled = true;
+
+                // drop 3 settings
+                checkDrop3Property.Enabled = true;
+                numericUpDownDrop3Delay.Enabled = true;
+                numericUpDownDrop3Size.Enabled = true;
+                trackBarDrop3Delay.Enabled = true;
+                trackBarDrop3Size.Enabled = true;
             }
             else
             {
@@ -185,6 +200,13 @@ namespace WinCamController
                 numericUpDownDrop2Size.Enabled = false;
                 trackBarDrop2Delay.Enabled = false;
                 trackBarDrop2Size.Enabled = false;
+
+                // Drop 3 setting
+                checkDrop3Property.Enabled = false;
+                numericUpDownDrop3Delay.Enabled = false;
+                numericUpDownDrop3Size.Enabled = false;
+                trackBarDrop3Delay.Enabled = false;
+                trackBarDrop3Size.Enabled = false;
             }
         }
 
@@ -213,8 +235,16 @@ namespace WinCamController
             int drop1Size = Convert.ToInt32(Math.Round(numericUpDownDrop1Size.Value, 0));
             int drop2delay = Convert.ToInt32(Math.Round(numericUpDownDrop2Delay.Value, 0));
             int drop2Size = Convert.ToInt32(Math.Round(numericUpDownDrop2Size.Value, 0));
+            int drop3delay = Convert.ToInt32(Math.Round(numericUpDownDrop3Delay.Value, 0));
+            int drop3Size = Convert.ToInt32(Math.Round(numericUpDownDrop3Size.Value, 0));
 
-            if (checkDrop2Property.Checked)
+
+            if (checkDrop2Property.Checked && checkDrop3Property.Checked)
+            {
+                int[] report = protocol.CreateReport(99, flashdelay, drop1Size, drop2delay, drop2Size, drop3delay, drop3Size);
+                protocol.SendReport(ref serialPort, ref report);
+            }
+            else if (checkDrop2Property.Checked && !checkDrop3Property.Checked)
             {
                 int[] report = protocol.CreateReport(99, flashdelay, drop1Size, drop2delay, drop2Size);
                 protocol.SendReport(ref serialPort, ref report);

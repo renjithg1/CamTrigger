@@ -68,7 +68,7 @@ namespace WinCamController
                         buffer[3] = CalculateChecksum(ref buffer);
                         return buffer;
                     }
-                case 2:
+                case 2: // Single drop
                     {
                         buffer = new int[buffer_size];
                         buffer[0] = buffer_size; //Size
@@ -78,7 +78,7 @@ namespace WinCamController
                         buffer[4] = CalculateChecksum(ref buffer);
                         return buffer;
                     }
-                case 4:
+                case 4: // Two drop
                     {
                         buffer = new int[buffer_size];
                         buffer[0] = buffer_size; //Size
@@ -90,6 +90,22 @@ namespace WinCamController
                         buffer[6] = CalculateChecksum(ref buffer);
                         return buffer;
                     }
+                case 6: // three drop
+                    {
+                        buffer = new int[buffer_size];
+                        buffer[0] = buffer_size; //Size
+                        buffer[1] = command;
+                        buffer[2] = data[0];
+                        buffer[3] = data[1];
+                        buffer[4] = data[2];
+                        buffer[5] = data[3];
+                        buffer[6] = data[4];
+                        buffer[7] = data[5];
+                        buffer[8] = CalculateChecksum(ref buffer);
+                        return buffer;
+                    }
+                default:
+                    return null;
             }
             return null;
         }

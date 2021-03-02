@@ -2,6 +2,7 @@
  * 
  * size - 1/24/5:00pm 4176 12 %  GB 447  21%  
  * 1/31               261967  19% 
+ * 2/28 drop 3 support added
  */
 
 
@@ -22,25 +23,10 @@
 
 WaterTap tap(TAP_PIN);
 CameraController camera(SHUTTER, AUTO_FOCUS);
-bool bTap = false;
-
-volatile int interruptCounter;
-int totalInterruptCounter;
- 
-hw_timer_t * timer = NULL;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-
 
 #define SerialDataBits 57600
 HardwareSerial SerialController( 2 );
  
-void IRAM_ATTR onTimer() {
-  portENTER_CRITICAL_ISR(&timerMux);
-  interruptCounter++;
-  portEXIT_CRITICAL_ISR(&timerMux);
-
-}
-
 #define eVHIDReport 0x0a
 #define eResetESP 0x0f
 #define eIsESPReady 0x0e
@@ -63,12 +49,6 @@ void setup()
   FirmataLite.attach(START_SYSEX, sysexCallback);
   FirmataLite.begin(57600);
 
-
-  timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &onTimer, true);
-//  timerAlarmWrite(timer, 8000000, true);
-  //timerAlarmEnable(timer);  
-
   SerialController.begin( SerialDataBits );
 }
 
@@ -85,7 +65,8 @@ static uint16_t ExtractUInt16(uint8_t* buf, uint8_t i)
 
 static void ProcessVHIDReport(uint8_t argc, uint8_t *argv)
 {
-  enum { LEN, CMD, ARG0, ARG1, ARG2, ARG3, CHKSUM, CAPACITY };
+  
+  enum { LEN, CMD, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, CHKSUM, CAPACITY };
   uint16_t vHIDReport[CAPACITY];
 
  // if (argc > 4 * CAPACITY)
@@ -114,6 +95,8 @@ static void ProcessVHIDReport(uint8_t argc, uint8_t *argv)
     return TakeDropPhotos(vHIDReport[2], vHIDReport[3]);
     case 7:
     return TakeDropPhotos(vHIDReport[2], vHIDReport[3], vHIDReport[4], vHIDReport[5]);
+    case 9:
+    return TakeDropPhotos(vHIDReport[2], vHIDReport[3], vHIDReport[4], vHIDReport[5], vHIDReport[6], vHIDReport[7]);
   }
   
 }
@@ -135,6 +118,21 @@ void TakeDropPhotos(int flashDelay, int drop1Size, int drop2Delay, int drop2Size
   tap.OpenTap(drop1Size);
   delay(drop2Delay);
   tap.OpenTap(drop2Size);
+  delay(flashDelay);
+  camera.FocusPress();
+  camera.ShutterPress(100);
+  camera.ShutterRelease();
+  camera.FocusRelease();
+}
+
+void TakeDropPhotos(int flashDelay, int drop1Size, int drop2Delay, int drop2Size, int drop3Delay, int drop3Size)
+{
+  SerialController.println("-TakeDropPhotos three Drop-");
+  tap.OpenTap(drop1Size);
+  delay(drop2Delay);
+  tap.OpenTap(drop2Size);
+  delay(drop3Delay);
+  tap.OpenTap(drop3Size);
   delay(flashDelay);
   camera.FocusPress();
   camera.ShutterPress(100);
@@ -211,27 +209,11 @@ void loop()
   {
     FirmataLite.processInput();    
   }
-
-  if (interruptCounter > 0) {
  
-    portENTER_CRITICAL(&timerMux);
-    interruptCounter--;
-    portEXIT_CRITICAL(&timerMux);
- 
-    totalInterruptCounter++;
- 
-    Serial.print("An interrupt as occurred. Total number: ");
-    Serial.println(totalInterruptCounter);
-   }
 }
 
 
 
-
-void ShutterPress()
-{
-  bTap = true;
-}
 
     
 

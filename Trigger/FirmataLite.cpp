@@ -52,9 +52,10 @@ void endSysex(void)
 //******************************************************************************
 //* Constructors
 //******************************************************************************
-
+bool FirmataLiteClass::parsingSysex = false;
 FirmataLiteClass::FirmataLiteClass(void)
 {
+    parsingSysex = false;
   systemReset();
 }
 

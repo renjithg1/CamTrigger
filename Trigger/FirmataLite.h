@@ -71,7 +71,7 @@ private:
     byte multiByteChannel; // channel data for multiByteCommands
     byte storedInputData[MAX_DATA_BYTES]; // multi-byte data
 /* sysex */
-    boolean parsingSysex;
+    static boolean parsingSysex;
     int sysexBytesRead;
 /* callback functions */
     systemResetCallbackFunction currentSystemResetCallback;
